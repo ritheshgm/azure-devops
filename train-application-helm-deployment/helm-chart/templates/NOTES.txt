@@ -1,0 +1,3 @@
+Release name is {{ .Release.Name }}
+Namespace is {{ .Release.Namespace }}
+Revision is {{ .Release.Revision }}

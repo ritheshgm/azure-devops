@@ -1,0 +1,74 @@
+# Docker
+# Build and push an image to Azure Container Registry
+# https://docs.microsoft.com/azure/devops/pipelines/languages/docker
+
+trigger:
+- master
+
+resources:
+- repo: self
+
+variables:
+  # Container registry service connection established during pipeline creation
+  dockerRegistryServiceConnection: 'f5648801-23da-40f8-96af-e274c593f5e7'
+  imageRepository: 'trainhelm'
+  containerRegistry: 'trainapp.azurecr.io'
+  dockerfilePath: '$(Build.SourcesDirectory)/Dockerfile'
+  tag: '$(Build.BuildId)'
+  
+  # Agent VM image name
+  vmImageName: 'ubuntu-latest'
+
+stages:
+
+- stage: gradlewbuild
+  displayName: gradlew Build stage
+  jobs:  
+  - job: gradlewBuild
+    displayName: gradlew Build
+    pool:
+      vmImage: $(vmImageName)
+    steps:
+    - task: Gradle@2
+      inputs:
+        workingDirectory: ''
+        gradleWrapperFile: 'gradlew'
+        gradleOptions: '-Xmx3072m'
+        javaHomeOption: 'JDKVersion'
+        jdkVersionOption: '1.8'
+        jdkArchitectureOption: 'x64'
+        publishJUnitResults: true
+        tasks: 'build --no-daemon'
+
+- stage: Build
+  displayName: Build and push stage
+  jobs:  
+  - job: Build
+    displayName: Build
+    pool:
+      vmImage: $(vmImageName)
+    steps:
+    - task: Docker@2
+      displayName: Build and push an image to container registry
+      inputs:
+        command: buildAndPush
+        repository: $(imageRepository)
+        dockerfile: $(dockerfilePath)
+        containerRegistry: $(dockerRegistryServiceConnection)
+        tags: |
+          $(tag)
+
+- stage: Deploy
+  displayName: helm deploy 
+  - task: HelmDeploy@0
+    displayName: Deploy
+    inputs:
+      connectionType: 'Azure Resource Manager'
+      azureSubscription: 'Free Trial(7b785028-c20b-415b-a5c8-d84a699b815e)'
+      azureResourceGroup: 'train-app'
+      kubernetesCluster: 'k8s-train-app'
+      namespace: 'helm'
+      command: 'install'
+      chartType: 'FilePath'
+      chartPath: './helm-chart'
+      releaseName: 'traina'

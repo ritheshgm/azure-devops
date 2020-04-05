@@ -1,0 +1,8 @@
+questions:
+- variable: database.useSSL
+  default: "true"
+  description: "Use SSL"
+  type: boolean
+  required: true
+  label: "Use SSL"
+  group: "Database Settings"

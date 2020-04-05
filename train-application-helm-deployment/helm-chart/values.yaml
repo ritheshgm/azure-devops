@@ -1,0 +1,14 @@
+affinity: {}
+image:
+  pullPolicy: IfNotPresent
+  repository: trainapp.azurecr.io
+  version: 29
+imagePullSecrets:
+- name: traina
+nodeSelector: {}
+replicaCount: 1
+resources: {}
+service:
+  port: 8080
+  type: LoadBalancer
+tolerations: []
