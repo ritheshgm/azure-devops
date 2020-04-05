@@ -32,4 +32,18 @@ command : terraform apply out.plan
 
 4. In the Azure portal, select All resources in the left menu to see the resources created for your new Kubernetes cluster.
 
+Test the Kubernetes cluster
 
+The Kubernetes tools can be used to verify the newly created cluster.
+
+1. Get the Kubernetes configuration from the Terraform state and store it in a file that kubectl can read.
+
+    Command: echo "$(terraform output kube_config)" > ./azurek8s
+
+2. Set an environment variable so that kubectl picks up the correct config.
+
+    command: export KUBECONFIG=./azurek8s
+
+3. Verify the health of the cluster.
+
+    command: kubectl get nodes
